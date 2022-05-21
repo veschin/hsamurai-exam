@@ -1,0 +1,17 @@
+.calva
+.lsp
+.cpcache
+.nrepl-port
+.clj-kondo
+resources/public/css/themes
+node_modules/
+out
+target
+resources/public/css/self_made_icons.css
+*.jar
+.rebel_readline_history
+todo.md
+package-lock.json
+package.json
+.shadow-cljs/
+resources/public/js/
