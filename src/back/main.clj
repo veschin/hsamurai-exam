@@ -4,10 +4,12 @@
    [ring.util.response :refer [file-response not-found]]
    [ring.adapter.jetty]
    [ring.middleware.resource :refer [wrap-resource]]
+   back.api
    [clojure.test :as t]))
 
 (def routes
-  {:GET (constantly (file-response "resources/index.html"))})
+  {"patients" {[:view] {:GET (constantly (file-response "resources/index.html"))}}
+   "api" back.api/routes})
 
 (defn dispatcher [{:keys [uri request-method] :as req}]
   (prn uri)
@@ -26,12 +28,12 @@
   (.start server)
   (.stop server)
 
-  (require 'ring.middleware.resource)
+  (Require 'ring.middleware.resource)
   ring.middleware.resource/wrap-resource
 
   (slurp (:body))
-  (slurp "http://localhost:8080")
+  (slurp "http://localhost:8080/api/create")
 
-  (rm/match [:get "/js"] routes)
+  (:match (rm/match [:get "/patients/list"] routes))
   ;;
   )
