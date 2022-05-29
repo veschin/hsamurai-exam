@@ -18,17 +18,23 @@
   (spec/and
    (partial re-matches #"\d{2}\.\d{2}\.\d{4}")
    (fn [date-str]
-     (let [cy         (.getFullYear (js/Date.))
+     (let [cy         #?(:cljs (.getFullYear (js/Date.))
+                         :clj  (.format (java.text.SimpleDateFormat. "yyyy")
+                                       (java.util.Date.)))
            [d m y]    (string/split date-str #"\.")
-           ->int      #(js/parseInt %)
+           ->int      #? (:cljs #(js/parseInt %)
+                          :clj  #(Integer/parseInt %))
            less-or-eq (fn [d cd] (<= (->int d) (->int cd)))]
        (->> [(less-or-eq y (- (->int cy) 14))
              (less-or-eq m 12)
-             (if (#{"02"} m)  (less-or-eq d 28) nil)
+             (less-or-eq 1 m)
+             (if (#{"02"} m) (less-or-eq d 28) nil)
              (cond
-               (and (-> m ->int odd?) (less-or-eq d 31))
+               (and (#{"01" "03" "05"
+                       "07" "08" "10" "12"} m)
+                    (less-or-eq d 31))
                true
-
+               
                (less-or-eq d 30)
                true
 
