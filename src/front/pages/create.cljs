@@ -3,7 +3,9 @@
             [clojure.spec.alpha :as spec]
             [front.spec.spec-create :refer [valid?]]
             [clojure.string :refer [join]]
-            reagent.core))
+            reagent.core
+            [re-frame.core :as rf]
+            front.events))
 
 (def form-data (reagent.core/atom {:data/mname ""}))
 (def form-data-valid? (reagent.core/atom nil))
@@ -11,7 +13,8 @@
 
 (defn on-check [value]
   (fn [_]
-    (swap! form-data assoc :data/sex value)))
+    (swap! form-data assoc :data/sex value)
+    (reset! form-data-valid? (valid? @form-data))))
 
 (defn assoc-data! [key]
   (fn [ev]
@@ -29,6 +32,8 @@
 (defn value-or-empty-str [key]
   (get @form-data key ""))
 
+(rf/reg-fx :front.events/create-code (fn [code] (when (#{:success} code) (reset! form-data {:data/mname ""}))))
+
 (defn on-create [_]
   (let [data    @form-data
         ks      [:data/country :data/city :data/street
@@ -36,10 +41,12 @@
         address (->> (select-keys data ks)
                      vals
                      (join ", "))]
-    (->> (assoc data :address address)
-         (#(apply dissoc % ks))
-         (map (fn [[key val]] {(name key) val}))
-         (reduce into {}))))
+    (rf/dispatch
+     [:create-patient
+      (->> (assoc data :address address)
+           (#(apply dissoc % ks))
+           (map (fn [[key val]] {(name key) val}))
+           (reduce into {}))])))
 
 (defn view []
   [:div#main-container
@@ -115,5 +122,8 @@
        (swap! form-data merge)
        (valid?))
 
+  (on-create nil)
+  
+  
   ;;
   )
