@@ -5,8 +5,6 @@
             reagent.core
             goog.functions))
 
-(rf/dispatch [:front.events/get-patients-list])
-
 (def patients-list (rf/subscribe [:front.events/patients-list]))
 
 (def ascending? (reagent.core/atom true))
@@ -46,66 +44,65 @@
 (defn on-edit [id]
   #(aset js/location "pathname" (str "patients/edit/" id)))
 
-(defn on-delete [id row-id]
+(defn on-delete [id]
   (fn [_]
     (when (js/confirm "Вы точно хотите удалить запись?")
-      (rf/dispatch [:front.events/delete-patient id]))))
+      (rf/dispatch [:front.events/delete-patient {:id id}]))))
 
 (defn view []
-  [:div#main-container
-   [control-row]
-   [:div#list
-    [:div.list-row
-     [:h3 {:on-click #(sort-by* :name)} "Имя"]
-     [:h3 {:on-click #(sort-by* :mname)} "Отчество"]
-     [:h3 {:on-click #(sort-by* :lname)} "Фамилия"]
-     [:h3 {:on-click #(sort-by* :sex)} "Пол"]
-     [:h3 {:on-click #(sort-by* :bdate)} "Дата рождения"]
-     [:h3 {:on-click #(sort-by* :address)} "Адрес"]
-     [:h3 {:on-click #(sort-by* :oms_num)} "ОМС"]]
-    (into
-     [:<>]
-     (for [{:keys [id name
-                   mname lname
-                   sex bdate address
-                   oms_num]}
-           (sort-by @sort-key (if @ascending? > <) @patients-list)
-           :let [row-id (str "row-n-" id)]]
-       [:div.list-row
-        {:id row-id}
-        [:div name]
-        [:div mname]
-        [:div lname]
-        [:div sex]
-        [:div bdate]
-        [:div address]
-        [:div oms_num]
-        [:button.edit-btn
-         {:on-click (on-edit id)}
-         "edit"]
-        [:button.delete-btn
-         {:on-click (on-delete id row-id)}
-         "delete"]]))
-    (style-tag
-     {:#main-container
-      {:position  :fixed
-       :top       :20%
-       :left      :50%
-       :transform {:translate [:-50% :-20%]}}
-      :#list
-      {:display        :flex
-       :flex-direction :column
-       :margin-top     :1vw
-       :font-size      :1.2vw}
-      :.list-row
-      {:display :flex
-       :gap     :1vw
-       :margin-bottom :1vw
-       :nested
-       {:h3 {:user-select   :none
-             :margin        0
-             :padding       0}
-        [:div :h3]
-        {:width      :10vw
-         :text-align :center}}}
-      })]])
+  (rf/dispatch [:front.events/get-patients-list])
+  (fn []
+    [:div#main-container
+     [control-row]
+     [:div#list
+      [:div.list-row
+       [:h3 {:on-click #(sort-by* :name)} "Имя"]
+       [:h3 {:on-click #(sort-by* :mname)} "Отчество"]
+       [:h3 {:on-click #(sort-by* :lname)} "Фамилия"]
+       [:h3 {:on-click #(sort-by* :sex)} "Пол"]
+       [:h3 {:on-click #(sort-by* :bdate)} "Дата рождения"]
+       [:h3 {:on-click #(sort-by* :address)} "Адрес"]
+       [:h3 {:on-click #(sort-by* :oms_num)} "ОМС"]]
+      (into
+       [:<>]
+       (for [{:keys [id name
+                     mname lname
+                     sex bdate address
+                     oms_num]}
+             (sort-by @sort-key (if @ascending? > <) @patients-list)]
+         [:div.list-row
+          [:div name]
+          [:div mname]
+          [:div lname]
+          [:div sex]
+          [:div bdate]
+          [:div address]
+          [:div oms_num]
+          [:button.edit-btn
+           {:on-click (on-edit id)}
+           "edit"]
+          [:button.delete-btn
+           {:on-click (on-delete id)}
+           "delete"]]))
+      (style-tag
+       {:#main-container
+        {:position  :fixed
+         :top       :20%
+         :left      :50%
+         :transform {:translate [:-50% :-20%]}}
+        :#list
+        {:display        :flex
+         :flex-direction :column
+         :margin-top     :1vw
+         :font-size      :1.2vw}
+        :.list-row
+        {:display :flex
+         :gap     :1vw
+         :margin-bottom :1vw
+         :nested
+         {:h3 {:user-select   :none
+               :margin        0
+               :padding       0}
+          [:div :h3]
+          {:width      :10vw
+           :text-align :center}}}})]]))
