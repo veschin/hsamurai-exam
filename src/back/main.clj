@@ -1,3 +1,4 @@
+
 (ns back.main
   (:require
    [route-map.core :as rm]
@@ -11,7 +12,8 @@
    [clojure.test :as t]))
 
 (def routes
-  {"patients" {[:view] {:GET (constantly (file-response "resources/index.html"))}}
+  {"patients" {[:view] {:GET (constantly (file-response "resources/index.html"))
+                        [:id] {:GET (constantly (file-response "resources/index.html"))}}}
    "api"      back.api/routes})
 
 (defn dispatcher [{:keys [uri request-method] :as req}]
@@ -34,6 +36,14 @@
 
   (.start server)
   (.stop server)
+  (do
+    (require '[back.db.dsl :as dsl]
+             '[back.db.schema :refer [schema]])
+    (dsl/exec! {:drop-table-if-exists :patients})
+
+    (let [{patient-fields :patients} schema]
+      (dsl/exec! {:create-table-if-not-exists
+                  [:!!patients patient-fields]})))
 
   (:match (rm/match [:get "/patients/list"] routes))
   ;;
