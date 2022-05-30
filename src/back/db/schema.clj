@@ -1,7 +1,8 @@
-(ns back.db.schema)
+(ns back.db.schema
+  )
 
 (def schema
-  {:patients {:id      :serial
+  {:patients {:id      [:serial :primary :key]
               :name    :text
               :mname   :text
               :lname   :text
@@ -17,13 +18,18 @@
               :oms_num "16`n length field"}})
 
 (comment
-  (require '[back.db.dsl :as dsl])
+  (require '[back.db.dsl :as dsl]
+           '[back.db.schema :refer [schema]])
   (dsl/exec! {:drop-table-if-exists :patients})
   
   (let [{patient-fields :patients} schema]
     (dsl/exec! {:create-table-if-not-exists
                 [:!!patients patient-fields]}))
 
+  (let [{patient-fields :patients} schema]
+    (dsl/parse-sql {:create-table-if-not-exists
+                [:!!patients patient-fields]}))
+  
   (dsl/table-info :patients)
 
   (let [oms (reduce str (map (fn [_] (rand-int 9)) (range 16)))]
@@ -34,7 +40,7 @@
       :lname   "Doe"
       :sex     "Male"
       :bdate   "07.07.1997"
-      :address "city Example-city, street Example, house 21, apartment 120"
+      :address "Example-city, Example, 21, 120"
       :oms_num oms}))
 
   (dsl/query {:select :*
