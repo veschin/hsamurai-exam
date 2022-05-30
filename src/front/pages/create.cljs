@@ -34,21 +34,31 @@
 
 (rf/reg-fx :front.events/create-code (fn [code] (when (#{:success} code) (reset! form-data {:data/mname ""}))))
 
-(defn on-create [_]
-  (let [data    @form-data
-        ks      [:data/country :data/city :data/street
-                 :data/house :data/apartment]
-        address (->> (select-keys data ks)
-                     vals
-                     (join ", "))]
-    (rf/dispatch
-     [:create-patient
-      (->> (assoc data :address address)
-           (#(apply dissoc % ks))
-           (map (fn [[key val]] {(name key) val}))
-           (reduce into {}))])))
+(def address-ks [:data/country :data/city :data/street
+                 :data/house :data/apartment])
 
-(defn view []
+(defn- ->address [data]
+  (->> (select-keys data address-ks)
+       vals
+       (join ", ")))
+
+(defn- prepare-to-post [data]
+  (->> (assoc data :address (->address data))
+       (#(apply dissoc % address-ks))
+       (map (fn [[key val]] {(name key) val}))
+       (reduce into {})))
+
+(defn on-create [_] (rf/dispatch [:create-patient (prepare-to-post @form-data)]))
+
+(defn on-edit [edit-id]
+  (fn [_]
+    (let [data (assoc @form-data :id edit-id)]
+      (rf/dispatch
+       [:front.events/edit-patient-info
+        (prepare-to-post data)
+        form-data]))))
+
+(defn view [& [edit-id]]
   [:div#main-container
    (into
     [:<>]
@@ -73,18 +83,23 @@
     [:div.checkbox-row
      [:input {:type     :checkbox
               :checked  (boolean (#{"Male"} (:data/sex @form-data)))
-              :on-click (on-check "Male")}]
+              :on-change (on-check "Male")}]
      [:label "Мужчина"]]
     [:div.checkbox-row
      [:input {:type     :checkbox
               :checked  (boolean (#{"Female"} (:data/sex @form-data)))
-              :on-click (on-check "Female")}]
+              :on-change (on-check "Female")}]
      [:label "Женщина"]]]
    [:div#button-row
-    [:button
-     {:disabled (not @form-data-valid?)
-      :on-click on-create}
-     "Создать"]]
+    (if edit-id
+      [:button
+       {:disabled (not @form-data-valid?)
+        :on-click (on-edit edit-id)}
+       "Изменить"]
+      [:button
+       {:disabled (not @form-data-valid?)
+        :on-click on-create}
+       "Создать"])]
    (style-tag
     {:#main-container
      {:position  :fixed
@@ -97,7 +112,8 @@
       :gap           :1vw
       :margin-bottom :1vw
       :nested        {:label {:width :60%}
-                      :input {:outline :none}}}
+                      :input {:outline :none
+                              :font-size :1.2vw}}}
      :.checkbox-row {:display         :flex
                      :align-items     :center
                      :justify-content :space-around}
