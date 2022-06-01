@@ -24,7 +24,7 @@
  :aliases {:tests   {:extra-paths ["test"]}
            :cljs    {:main-opts ["-m" "shadow.cljs.devtools.cli" "watch" "site"]}
            :release {:main-opts ["-m" "shadow.cljs.devtools.cli" "release" "site"]}
-           :aot     {:main-opts ["-e" "(compile,'core.server)"]}
+           :aot     {:main-opts ["-e" "(compile,'back.main)"]}
            :uberjar {:main-opts ["-m" "uberdeps.uberjar"
-                                 "--target" "build/iram.jar"
-                                 "--main-class" "core.server"]}}}
+                                 "--target" "build/crud.jar"
+                                 "--main-class" "back.main"]}}}

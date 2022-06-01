@@ -1,5 +1,5 @@
-
 (ns back.main
+  (:gen-class)
   (:require
    [route-map.core :as rm]
    [ring.util.response :refer [file-response not-found]]
@@ -9,7 +9,11 @@
    [ring.middleware.json :refer [wrap-json-params]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    back.api
-   [clojure.test :as t]))
+   [clojure.test :as t]
+   
+   [back.db.dsl :as dsl]
+   [back.db.schema :refer [schema]]
+   ))
 
 (def routes
   {"patients" {[:view] {:GET (constantly (file-response "resources/index.html"))
@@ -22,29 +26,36 @@
     (match req)
     (not-found "Path not found")))
 
-(def server
-  (ring.adapter.jetty/run-jetty
-   (-> dispatcher
-       (wrap-params)
-       (wrap-keyword-params)
-       (wrap-json-params)
-       (wrap-resource "public"))
-   {:port  8080
-    :join? false}))
+(defn server []
+  (def jetty-server
+    (ring.adapter.jetty/run-jetty
+     (-> dispatcher
+         (wrap-params)
+         (wrap-keyword-params)
+         (wrap-json-params)
+         (wrap-resource "public"))
+     {:port  8080
+      :join? false})))
 
-(comment
-
-  (.start server)
-  (.stop server)
-  (do
-    (require '[back.db.dsl :as dsl]
-             '[back.db.schema :refer [schema]])
-    (dsl/exec! {:drop-table-if-exists :patients})
-
-    (let [{patient-fields :patients} schema]
+(defn create-tables []
+  (let [{patient-fields :patients} schema]
+      ;; (dsl/exec! {:drop-table-if-exists :patients})
       (dsl/exec! {:create-table-if-not-exists
                   [:!!patients patient-fields]})))
 
+;; (defn fill-by-random []
+  ;; {:})
+
+(defn -main [& _]
+  (create-tables)
+  (server))
+
+(comment
+  
+  (.start jetty-server)
+  (.stop jetty-server)
+  (dsl/exec! {:drop-table-if-exists :patients})
+  
   (:match (rm/match [:get "/patients/list"] routes))
   ;;
   )
