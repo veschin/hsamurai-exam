@@ -33,27 +33,25 @@
 (rf/reg-event-fx
  ::get-patients-list
  (fn [{db :db}]
-   {:db (assoc db :loading? true)
+   {:db         (assoc db :loading? true)
     :http-xhrio {:method          :get
                  :uri             "/api/list"
                  :format          (ajax/json-request-format)
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success      [:success-list-get]
-                 ;; :on-error        [:error-on-list-get]
-                 }}))
+                 :on-failure      [:error-on-list-get]}}))
 
 (rf/reg-event-fx
  ::search-patients-list
  (fn [{db :db} [_ params]]
-   {:db (assoc db :loading? true)
+   {:db         (assoc db :loading? true)
     :http-xhrio {:method          :get
                  :uri             "/api/search"
                  :params          params
                  :format          (ajax/json-request-format)
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success      [:success-list-get]
-                 ;; :on-error        [:error-on-list-get]
-                 }}))
+                 :on-failure      [:error-on-list-get]}}))
 
 (rf/reg-event-fx
  :success-list-get
@@ -61,6 +59,11 @@
    {:db (-> db
             (dissoc :loading?)
             (assoc  :patients-list (if (vector? response) response [response])))}))
+
+(rf/reg-event-fx
+ :error-on-list-get
+ (fn [{db :db} _]
+   {:db (-> db (dissoc :loading?) (assoc :patients-list []))}))
 
 (rf/reg-sub ::patients-list (fn [db _] (:patients-list db)))
 
@@ -73,7 +76,7 @@
                  :format          (ajax/json-request-format)
                  :response-format (ajax/ring-response-format)
                  :on-success      [:success-patient-delete]
-                 :on-error        [:error-on-action]}}))
+                 :on-failure      [:error-on-action]}}))
 
 (rf/reg-event-fx
  :success-patient-delete
@@ -90,7 +93,7 @@
                  :format          (ajax/json-request-format)
                  :response-format (ajax/ring-response-format)
                  :on-success      [:success-patient-edit]
-                 :on-error        [:error-on-action]}}))
+                 :on-failure      [:error-on-action]}}))
 
 (rf/reg-event-fx
  ::get-patient-info
@@ -102,8 +105,7 @@
                  :format          (ajax/json-request-format)
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success      [:success-patient-info-get]
-                 :on-error        [:error-on-action]
-                 }}))
+                 :on-failure      [:error-on-action]}}))
 
 (defn update-form-data! [db response]
   (let [atom          (:form-data-atom db)
@@ -138,6 +140,7 @@
   
   (rf/dispatch [:success-create nil])
   (rf/dispatch [:error-on-create nil])
+  (rf/dispatch [:error-on-list-get nil])
   re-frame.db/app-db
   (rf/dispatch [:front.events/get-patients-list "Олег"])
   (rf/subscribe [:front.events/patients-list])
