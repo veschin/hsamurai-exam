@@ -25,7 +25,7 @@
            ->int      #? (:cljs #(js/parseInt %)
                           :clj  #(Integer/parseInt %))
            less-or-eq (fn [d cd] (<= (->int d) (->int cd)))]
-       (->> [(less-or-eq y (- (->int cy) 14))
+       (->> [#_(less-or-eq y (- (->int cy) 14))
              (less-or-eq m 12)
              (less-or-eq 1 m)
              (if (#{"02"} m) (less-or-eq d 28) nil)
@@ -117,13 +117,9 @@
   (map string/trim (string/split "ул. Пухова, дом Скоропутова" #","))
   (spec/valid? ::text-field "Алоа Вера")
 
-;; TODO PREPROCESS
+  ;; TODO PREPROCESS
   (string/lower-case "111")
   (string/trim "12321")
-  (take 2 (string/split "12.12.1200" #"\."))
-  (spec/valid? ::date "11.05.2021")
-  (spec/valid? ::optional-text-field "")
-
-  (odd? 2)
+  
   ;;
   )
