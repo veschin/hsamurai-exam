@@ -25,7 +25,7 @@
   [:div#control-row
    [:input#search {:autoComplete :off
                    :on-change on-search}]
-   [:button#filters "Фильтры"]
+   #_[:button#filters "Фильтры"]
    [:button#create
     {:on-click #(aset js/location "pathname" "patients/create")}
     "Создать"]
@@ -94,7 +94,7 @@
         {:display        :flex
          :flex-direction :column
          :margin-top     :1vw
-         :font-size      :1.2vw}
+         :font-size      :1vw}
         :.list-row
         {:display :flex
          :gap     :1vw
@@ -104,5 +104,4 @@
                :margin        0
                :padding       0}
           [:div :h3]
-          {:width      :10vw
-           :text-align :center}}}})]]))
+          {:width      :10vw}}}})]]))
