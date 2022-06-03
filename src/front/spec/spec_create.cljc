@@ -60,10 +60,10 @@
   (t/is (spec/valid? ::date "15.09.1995"))
   (t/is (spec/valid? ::date "19.10.2000"))
   (t/is (spec/valid? ::date "28.02.2005"))
+  (t/is (spec/valid? ::date "11.12.2009"))
   (t/is (not (spec/valid? ::date "29.02.2000")))
   (t/is (not (spec/valid? ::date "11/22/44")))
-  (t/is (not (spec/valid? ::date "11.22.44")))
-  (t/is (not (spec/valid? ::date "11.12.2009"))))
+  (t/is (not (spec/valid? ::date "11.22.44"))))
 
 (t/deftest valid-oms?
   (t/is (spec/valid? ::oms "1234567890000000"))
@@ -103,6 +103,7 @@
    :data/form
    {:data/name      "Олег"
     :data/mname     ""
+    :data/sex       "Male"
     :data/lname     "Вещин"
     :data/bdate     "19.10.2000"
     :data/country   "Россия"
@@ -112,14 +113,5 @@
     :data/apartment "170"
     :data/oms_num   "1234567890000000"})
 
-  (spec/valid? :data/bdate "19.12.2007")
-
-  (map string/trim (string/split "ул. Пухова, дом Скоропутова" #","))
-  (spec/valid? ::text-field "Алоа Вера")
-
-  ;; TODO PREPROCESS
-  (string/lower-case "111")
-  (string/trim "12321")
-  
   ;;
   )
